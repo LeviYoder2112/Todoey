@@ -44,7 +44,7 @@
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="Psd-9d-eta">
                             <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             <connections>
-                                <action selector="AddButtonPressed:" destination="mUU-Sg-WF4" id="Eih-ws-1vm"/>
+                                <action selector="addButtonPressed:" destination="mUU-Sg-WF4" id="32c-Yn-qxO"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
