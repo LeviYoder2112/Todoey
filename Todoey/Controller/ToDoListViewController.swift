@@ -9,7 +9,7 @@
 import UIKit
 import RealmSwift
 
-class ToDoListViewController: UITableViewController {
+class ToDoListViewController: SwipeCellTableViewController {
   let realm = try! Realm()
     
     var selectedCategory: Category? {
@@ -27,7 +27,7 @@ class ToDoListViewController: UITableViewController {
         super.viewDidLoad()
 
         print(dataFilePath)
-    
+    tableView.rowHeight = 80.0
     }
 
     
@@ -39,7 +39,7 @@ class ToDoListViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
        
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         if let item = items?[indexPath.row] {
         cell.textLabel?.text = item.title
        
@@ -80,6 +80,7 @@ class ToDoListViewController: UITableViewController {
                         var newItem = Item()
                         newItem.title = textField.text!
                         currentCategory.items.append(newItem)
+                        newItem.dateCreated = Date()
                     }
                 } catch {
                     print("Error saving new items, \(error)")
@@ -123,6 +124,23 @@ class ToDoListViewController: UITableViewController {
         tableView.reloadData()
 }
 
+    
+    //MARK: - Deleting Data
+    
+    override func updateModel(at indexPath: IndexPath) {
+        if let itemForDeletion = self.items?[indexPath.row]{
+            do {
+                try self.realm.write {
+                    self.realm.delete(itemForDeletion)
+                }
+            } catch{
+                print("error deleting category \(error)")
+            }
+            tableView.reloadData()
+        }
+    }
+    
+    
 }
 
 
@@ -130,14 +148,10 @@ class ToDoListViewController: UITableViewController {
 extension ToDoListViewController: UISearchBarDelegate {
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-//        let request : NSFetchRequest<Item> = Item.fetchRequest()
-//        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text! )
-//        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-//
-//        loadItems(with: request, predicate: predicate)
-//
-//        tableView.reloadData()
-//
+        
+      items = items?.filter("title CONTAINS[CD] %@", searchBar.text!).sorted(byKeyPath: "dateCreated", ascending: false)
+
+        tableView.reloadData()
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
