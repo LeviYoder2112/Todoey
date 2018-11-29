@@ -8,29 +8,54 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class ToDoListViewController: SwipeCellTableViewController {
-  let realm = try! Realm()
+    @IBOutlet weak var searchBar: UISearchBar!
     
+    let realm = try! Realm()
+   var masterColor = ""
     var selectedCategory: Category? {
         didSet {
             loadItems()
+            masterColor = (selectedCategory?.color)!
         }
     }
     
     var items: Results<Item>?
     
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
-   
-    
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        print(dataFilePath)
     tableView.rowHeight = 80.0
+    tableView.separatorStyle = .none
+      
     }
 
     
+    override func viewWillAppear(_ animated: Bool) {
+      
+        title = selectedCategory?.title
+        
+        guard let navBar = navigationController?.navigationBar else {fatalError("Navigation controller doesn't exist.")
+            
+        }
+         navBar.barTintColor = UIColor(hexString: masterColor)
+         navBar.tintColor = UIColor.init(contrastingBlackOrWhiteColorOn: UIColor(hexString: masterColor), isFlat: true)
+        navBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor : UIColor.init(contrastingBlackOrWhiteColorOn:  UIColor(hexString: masterColor), isFlat: true)]
+        
+        searchBar.barTintColor =  UIColor(hexString: masterColor)
+    }
+    
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        if let originalColor = UIColor(hexString: "1478F6"){
+            navigationController?.navigationBar.barTintColor = originalColor
+            navigationController?.navigationBar.tintColor = UIColor.flatWhite()
+            navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.init(contrastingBlackOrWhiteColorOn: originalColor, isFlat: true)]
+        }
+        
+    }
     //MARK: - Tableview Datasource Methods
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -41,9 +66,14 @@ class ToDoListViewController: SwipeCellTableViewController {
        
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
         if let item = items?[indexPath.row] {
-        cell.textLabel?.text = item.title
-       
-        cell.accessoryType = item.done ? .checkmark : .none
+        
+if let color = UIColor(hexString: masterColor).darken(byPercentage: CGFloat(indexPath.row) / CGFloat((items!.count))) {
+            cell.textLabel?.text = item.title
+            cell.backgroundColor = color
+    cell.textLabel?.textColor = UIColor.init(contrastingBlackOrWhiteColorOn: color, isFlat: true)
+            }
+      
+            cell.accessoryType = item.done ? .checkmark : .none
         } else {
             cell.textLabel?.text = "No Items Added"
         }
